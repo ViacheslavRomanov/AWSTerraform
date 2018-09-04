@@ -93,7 +93,7 @@ resource "aws_security_group_rule" "default_egress" {
 ###############################
 resource "random_shuffle" "random_az"{
   input = "${var.vpcAZ[var.vpcRegion]}"
-  result_count = 1
+  result_count = "${length(var.vpcCIDRPublicSubnet)+length(var.vpcCIDRPrivateSubnet)}"
 }
 ###############################
 #Create private subnet(-s)
@@ -103,9 +103,9 @@ resource "aws_subnet" "private_subnets" {
   cidr_block              = "${element(var.vpcCIDRPrivateSubnet, count.index)}"
   vpc_id                  = "${aws_vpc.vpc.id}"
   map_public_ip_on_launch = "false"
-  availability_zone       = "${element(random_shuffle.random_az.result,0)}"
+  availability_zone       = "${element(random_shuffle.random_az.result,count.index)}"
   tags {
-    #Name            = "private_subnet-${element(aws_subnet.private_subnets.*.availability_zone,0)}"
+    Name            = "${var.vpcName}-${var.environment}-private_subnet-${count.index+1}"
     Environment     = "${var.environment}"
   }
 
@@ -119,9 +119,9 @@ resource "aws_subnet" "public_subnets" {
   cidr_block              = "${element(var.vpcCIDRPublicSubnet, count.index)}"
   vpc_id                  = "${aws_vpc.vpc.id}"
   map_public_ip_on_launch = "${var.vpcMapPublicIpOnLaunch}"
-  availability_zone       = "${element(random_shuffle.random_az.result,0)}"
+  availability_zone       = "${element(random_shuffle.random_az.result,count.index+length(var.vpcCIDRPrivateSubnet))}"
   tags {
-    #Name            = "public_subnet-${random_shuffle.random_az.result}"
+    Name            = "${var.vpcName}-${var.environment}-public_subnet-${count.index+1}"
     Environment     = "${var.environment}"
   }
   depends_on        = ["aws_vpc.vpc"]
@@ -138,7 +138,7 @@ resource "aws_internet_gateway" "vpc_igw" {
   }
   depends_on        = ["aws_vpc.vpc"]
 }
-resource "aws_route_table" "public_route_tables" {
+resource "aws_route_table" "public_route_table" {
   count            = "${length(var.vpcCIDRPublicSubnet) > 0 ? 1 : 0}"
   vpc_id           = "${aws_vpc.vpc.id}"
   propagating_vgws = ["${var.vpcPublicPropagatingVGWs}"]
@@ -151,17 +151,17 @@ resource "aws_route_table" "public_route_tables" {
 
 resource "aws_route" "public_internet_gateway" {
   count                  = "${length(var.vpcCIDRPublicSubnet) > 0 ? 1 : 0}"
-  route_table_id         = "${aws_route_table.public_route_tables.id}"
+  route_table_id         = "${aws_route_table.public_route_table.id}"
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = "${aws_internet_gateway.vpc_igw.id}"
-  depends_on             = ["aws_internet_gateway.vpc_igw", "aws_route_table.public_route_tables"]
+  depends_on             = ["aws_internet_gateway.vpc_igw", "aws_route_table.public_route_table"]
 }
 
 ###############################
 # Create EIP
 ###############################
 resource "aws_eip" "nat_eip" {
-  count       = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcAZ[var.vpcRegion])) : 0}"
+  count       = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPublicSubnet)) : 0}"
   vpc         = true
   depends_on  = ["aws_internet_gateway.vpc_igw"]
 }
@@ -169,31 +169,42 @@ resource "aws_eip" "nat_eip" {
 # Create NAT-GW
 ###############################
 resource "aws_nat_gateway" "nat_gw" {
-  count       = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcAZ[var.vpcRegion])) : 0}"
+  count       = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPublicSubnet)) : 0}"
   allocation_id   = "${element(aws_eip.nat_eip.*.id, (var.vpcSingleNATGateway ? 0 : count.index))}"
   subnet_id       = "${element(aws_subnet.public_subnets.*.id, (var.vpcSingleNATGateway ? 0 : count.index))}"
   depends_on      = ["aws_internet_gateway.vpc_igw", "aws_subnet.public_subnets"]
 }
 ###############################
-# Create private route table
+# Create private route table(-s)
 ###############################
-resource "aws_route_table" "private_route_tables" {
-  count               = "${length(var.vpcAZ[var.vpcRegion])}"
+resource "aws_route_table" "private_route_table" {
+  count               = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPrivateSubnet)) : 0}"
   vpc_id              = "${aws_vpc.vpc.id}"
   propagating_vgws    = ["${var.vpcPrivatePropagatingVGWs}"]
   tags {
-    Name            = "private_route_tables"
+    Name            = "private_route_table"
     Environment     = "${var.environment}"
   }
   depends_on          = ["aws_vpc.vpc"]
 }
+#####################################
+# Create shuffle for NAT-GW
+#####################################
+#output "vpcNATGWIds" {
+#  value = "${aws_nat_gateway.nat_gw.*.id}"
+#}
+resource "random_shuffle" "random_nat-gw"{
+  count = "${var.vpcEnableNATGateway ? 1 : 0}"
+  input = "${aws_nat_gateway.nat_gw.*.id}"
+  result_count = "${length(var.vpcCIDRPrivateSubnet)}"
+}
 
 resource "aws_route" "private_nat_gateway" {
-  count                   = "${var.vpcEnableNATGateway ? length(var.vpcAZ[var.vpcRegion]) : 0}"
-  route_table_id          = "${element(aws_route_table.private_route_tables.*.id, count.index)}"
+  count                   = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPrivateSubnet)) : 0}"
+  route_table_id          = "${element(aws_route_table.private_route_table.*.id, count.index)}"
   destination_cidr_block  = "0.0.0.0/0"
-  nat_gateway_id          = "${element(aws_nat_gateway.nat_gw.*.id, count.index)}"
-  depends_on              = ["aws_nat_gateway.nat_gw", "aws_route_table.private_route_tables"]
+  nat_gateway_id          = "${element(random_shuffle.random_nat-gw.result, count.index)}"
+  depends_on              = ["aws_nat_gateway.nat_gw", "aws_route_table.private_route_table"]
 }
 
 ###############################
@@ -234,8 +245,8 @@ resource "aws_vpc_dhcp_options" "vpc_dhcp_options" {
 resource "aws_route_table_association" "private_route_table_associations" {
   count           = "${length(var.vpcCIDRPrivateSubnet)}"
   subnet_id       = "${element(aws_subnet.private_subnets.*.id, count.index)}"
-  route_table_id  = "${element(aws_route_table.private_route_tables.*.id, count.index)}"
-  depends_on      = ["aws_route_table.private_route_tables", "aws_subnet.private_subnets"]
+  route_table_id  = "${element(aws_route_table.private_route_table.*.id, (var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 0 : count.index) : 0))}"
+  depends_on      = ["aws_route_table.private_route_table", "aws_subnet.private_subnets"]
 }
 ##############################
 # ...public
@@ -243,8 +254,8 @@ resource "aws_route_table_association" "private_route_table_associations" {
 resource "aws_route_table_association" "public_route_table_associations" {
   count           = "${length(var.vpcCIDRPublicSubnet)}"
   subnet_id       = "${element(aws_subnet.public_subnets.*.id, count.index)}"
-  route_table_id  = "${aws_route_table.public_route_tables.id}"
-  depends_on      = ["aws_route_table.public_route_tables", "aws_subnet.public_subnets"]
+  route_table_id  = "${aws_route_table.public_route_table.id}"
+  depends_on      = ["aws_route_table.public_route_table", "aws_subnet.public_subnets"]
 }
 ###############################
 # DHCP Options Set Association
