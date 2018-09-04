@@ -2,3 +2,6 @@
 # OUTPUT
 ##################################################################################
 
+/*output "elb_dns_name" {
+  value = "${module.webserver_cluster.aws_elb_public_dns}"
+} */

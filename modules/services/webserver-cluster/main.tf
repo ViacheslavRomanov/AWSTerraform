@@ -2,7 +2,7 @@
 # RESOURCES
 ##################################################################################
 resource "aws_security_group" "bastion-sg" {
-  name   = "bastion-security-group"
+  name   = "${var.cluster_name}-bastion-sg"
 
   ingress {
     protocol    = "tcp"
@@ -27,7 +27,7 @@ resource "aws_security_group" "bastion-sg" {
 }
 
 resource "aws_security_group" "elb-sg" {
-  name   = "elb-security-group"
+  name   = "${var.cluster_name}-elb-sg"
 
   ingress {
     protocol    = "tcp"
@@ -44,18 +44,19 @@ resource "aws_security_group" "elb-sg" {
   }
 }
 
+data "template_file" "user_data" {
+  template = "${file("${path.module}/user_data.sh")}"
+}
 
 resource "aws_launch_configuration" "web_lc" {
-  image_id = "ami-c58c1dd3"
-  instance_type = "t2.micro"
+  image_id = "${var.ec2AMI}"
+  instance_type = "${var.ec2Type}"
   security_groups = ["${aws_security_group.bastion-sg.name}"]
   enable_monitoring = false
+  name = "${var.cluster_name}-lc"
 
-  user_data = <<EOF
-               #!/bin/bash
-               sudo yum install nginx -y
-               sudo service nginx start
-              EOF
+  user_data = "${data.template_file.user_data.rendered}"
+
   lifecycle {
     create_before_destroy = true
   }
@@ -64,7 +65,7 @@ resource "aws_launch_configuration" "web_lc" {
 data "aws_availability_zones" "all" {}
 
 resource "aws_elb" "elb" {
-  name = "terraform-elb-example"
+  name = "${var.cluster_name}-elb"
   availability_zones = ["${data.aws_availability_zones.all.names}"]
   security_groups = ["${aws_security_group.elb-sg.id}"]
 
@@ -89,11 +90,12 @@ resource "aws_autoscaling_group" "asg-web" {
   load_balancers = ["${aws_elb.elb.name}"]
   health_check_type = "ELB"
 
-  max_size = 5
-  min_size = 2
+  max_size = "${var.asgMaxSize}"
+  min_size = "${var.asgMinSize}"
+
   tag {
     key = "Name"
-    value = "terraform-asg-example"
+    value = "${var.cluster_name}"
     propagate_at_launch = true
   }
 }
