@@ -17,7 +17,7 @@ resource "aws_iam_role_policy_attachment" "cross_account_assume_role" {
 resource "aws_iam_role" "cross_account_assume_role" {
   count              = "${var.iamEnableCrossaccountRole ? 1 : 0}"
 
-  name               = "${var.iamName}-cross_account_assume_role-${var.iamEnvironment}"
+  name               = "${lower(var.iamName)}-cross_account_assume_role-${lower(var.iamEnvironment)}"
   description        = "IAN ${var.iamName}-cross_account_assume_role-${var.iamEnvironment} role"
   assume_role_policy = "${data.aws_iam_policy_document.cross_account_assume_role_policy.json}"
 }
@@ -68,7 +68,7 @@ data "aws_iam_policy_document" "role-policy-document" {
   }
 }
 resource "aws_iam_role" "iam_role" {
-  name = "${var.iamName}-iam_role-${var.iamEnvironment}"
+  name = "${lower(var.iamName)}-iam_role-${lower(var.iamEnvironment)}"
   description = "${var.iamName}-role-${var.iamEnvironment} role"
   path = "/"
   assume_role_policy = "${data.aws_iam_policy_document.role-policy-document.json}"
@@ -76,7 +76,7 @@ resource "aws_iam_role" "iam_role" {
 
 # IAM Instance profile
 resource "aws_iam_instance_profile" "iam_instance_profile" {
-  name = "${var.iamName}-iam_instance_profile-${var.iamEnvironment}"
+  name = "${lower(var.iamName)}-iam_instance_profile-${lower(var.iamEnvironment)}"
   role = "${aws_iam_role.iam_role.name}"
   depends_on = ["aws_iam_role.iam_role"]
 }
