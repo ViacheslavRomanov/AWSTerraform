@@ -31,3 +31,37 @@ module "myVpc" {
   vpcEnableNATGateway = "false"
 }
 
+module "iam" {
+  source                          = "../modules/iam"
+  iamName                            = "TEST-IAM"
+  iamEnvironment                     = "STAGE"
+
+  iamRolePrincipals         = [
+    "ec2.amazonaws.com",
+  ]
+  iamPolicyActions           = [
+    "cloudwatch:GetMetricStatistics",
+    "logs:DescribeLogStreams",
+    "logs:GetLogEvents",
+    "elasticache:Describe*",
+    "rds:Describe*",
+    "rds:ListTagsForResource",
+    "ec2:DescribeAccountAttributes",
+    "ec2:DescribeAvailabilityZones",
+    "ec2:DescribeSecurityGroups",
+    "ec2:DescribeVpcs",
+    "ec2:Owner",
+  ]
+}
+
+module "bastion" {
+  source = "../modules/services/bastion-openvpn"
+  ec2BastionKeyPath = "../vars/aws_key.pub"
+  ec2BastionSubnetId = "${module.myVpc.vpc-publicsubnet-id_0}"
+  vpcCIDR = "${module.myVpc.vpc_cidr_block}"
+  vpcId = "${module.myVpc.vpc_id}"
+  ec2IAMInstanceProfile = "${module.iam.instance_profile_id}"
+  ec2BastionKeyName = "TESTKEY"
+  ec2BastionName = "TEST"
+  ec2BastionEnvironment = "STAGE"
+}
