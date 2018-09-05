@@ -178,7 +178,7 @@ resource "aws_nat_gateway" "nat_gw" {
 # Create private route table(-s)
 ###############################
 resource "aws_route_table" "private_route_table" {
-  count               = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPrivateSubnet)) : 0}"
+  count               = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPrivateSubnet)) : (length(var.vpcCIDRPrivateSubnet) > 0 ? 1 : 0)}"
   vpc_id              = "${aws_vpc.vpc.id}"
   propagating_vgws    = ["${var.vpcPrivatePropagatingVGWs}"]
   tags {
@@ -188,22 +188,19 @@ resource "aws_route_table" "private_route_table" {
   depends_on          = ["aws_vpc.vpc"]
 }
 #####################################
-# Create shuffle for NAT-GW
+# Create random for NAT-GW
 #####################################
-#output "vpcNATGWIds" {
-#  value = "${aws_nat_gateway.nat_gw.*.id}"
-#}
-resource "random_shuffle" "random_nat-gw"{
-  count = "${var.vpcEnableNATGateway ? 1 : 0}"
-  input = "${aws_nat_gateway.nat_gw.*.id}"
-  result_count = "${length(var.vpcCIDRPrivateSubnet)}"
+resource "random_integer" "random_nat-gw"{
+  min = 0
+  max = "${(var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPublicSubnet)-1) : 1)}"
+  count = "${var.vpcEnableNATGateway ? length(var.vpcCIDRPrivateSubnet) : 0}"
 }
 
 resource "aws_route" "private_nat_gateway" {
   count                   = "${var.vpcEnableNATGateway ? (var.vpcSingleNATGateway ? 1 : length(var.vpcCIDRPrivateSubnet)) : 0}"
   route_table_id          = "${element(aws_route_table.private_route_table.*.id, count.index)}"
   destination_cidr_block  = "0.0.0.0/0"
-  nat_gateway_id          = "${element(random_shuffle.random_nat-gw.result, count.index)}"
+  nat_gateway_id          = "${var.vpcSingleNATGateway ? element(aws_nat_gateway.nat_gw.*.id, 0) : element(aws_nat_gateway.nat_gw.*.id, element(random_integer.random_nat-gw.*.result, count.index))}"
   depends_on              = ["aws_nat_gateway.nat_gw", "aws_route_table.private_route_table"]
 }
 

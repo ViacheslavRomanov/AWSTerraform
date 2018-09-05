@@ -24,10 +24,10 @@ module "myVpc" {
   vpcName = "myVPC"
   allowed_ports = []
   vpcRegion = "us-east-1"
-  vpcCIDRPrivateSubnet = ["10.0.1.0/24", "10.0.2.0/24"]
-  vpcCIDRPublicSubnet = ["10.0.3.0/24", "10.0.4.0/24"]
+  vpcCIDRPrivateSubnet = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+  vpcCIDRPublicSubnet = ["10.0.4.0/24", "10.0.5.0/24"]
 
-  vpcSingleNATGateway = "true"
-  vpcEnableNATGateway = "true"
+  vpcSingleNATGateway = "false"
+  vpcEnableNATGateway = "false"
 }
 
