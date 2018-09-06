@@ -9,37 +9,38 @@ resource "aws_key_pair" "key_pair" {
 # Create AWS Instance
 #---------------------------------------------------
 resource "aws_instance" "instance" {
-  count                       = "${var.ec2InstancesAmount}"
+  count = "${var.ec2InstancesAmount}"
 
-  ami                         = "${var.ec2AMI}"
-  instance_type               = "${var.ec2InstanceType}"
-  user_data                   = "${file("${var.ec2UserDataFile}")}"
-  key_name                    = "${aws_key_pair.key_pair.id}"
-  subnet_id                   = "${var.ec2SubnetId}"
-  vpc_security_group_ids      = ["${var.ec2VPCSecurityGroupIDList}"]
-  monitoring                  = "${var.monitoring}"
-  iam_instance_profile        = "${var.ec2IAMInstanceProfile}"
+  ami = "${var.ec2AMI}"
+  instance_type = "${var.ec2InstanceType}"
+  user_data = "${file("${var.ec2UserDataFile}")}"
+  key_name = "${aws_key_pair.key_pair.id}"
+  subnet_id = "${var.ec2SubnetId}"
+  vpc_security_group_ids = [
+    "${var.ec2VPCSecurityGroupIDList}"]
+  monitoring = "${var.monitoring}"
+  iam_instance_profile = "${var.ec2IAMInstanceProfile}"
 
   # Note: network_interface can't be specified together with associate_public_ip_address
   #network_interface           = "${var.network_interface}"
   associate_public_ip_address = "${var.ec2PublicIPAssociateEnable}"
-  private_ip                  = "${var.ec2PrivateIP}"
-  ipv6_address_count          = "${var.ec2IPv6AddressCount}"
-  ipv6_addresses              = "${var.ec2IPv6AddressList}"
+  private_ip = "${var.ec2PrivateIP}"
+  ipv6_address_count = "${var.ec2IPv6AddressCount}"
+  ipv6_addresses = "${var.ec2IPv6AddressList}"
 
-  source_dest_check                    = "${var.ec2SourceDestCheckEnable}"
-  disable_api_termination              = "${var.ec2InstanceTerminationProtectionEnable}"
+  source_dest_check = "${var.ec2SourceDestCheckEnable}"
+  disable_api_termination = "${var.ec2InstanceTerminationProtectionEnable}"
   instance_initiated_shutdown_behavior = "${var.ec2InstanceInitiatedShutdownBehavior}"
-  placement_group                      = "${var.ec2PlacementGroup}"
-  tenancy                              = "${var.ec2Tenancy}"
+  placement_group = "${var.ec2PlacementGroup}"
+  tenancy = "${var.ec2Tenancy}"
 
-  ebs_optimized          = "${var.ec2EBSOptimized}"
-  volume_tags            = "${var.ec2VolumeTagMap}"
+  ebs_optimized = "${var.ec2EBSOptimized}"
+  volume_tags = "${var.ec2VolumeTagMap}"
   root_block_device {
     volume_size = "${var.ec2DiskSize}"
     #    volume_type = "gp2"
   }
-  ebs_block_device       = "${var.ec2EBSDeviceList}"
+  ebs_block_device = "${var.ec2EBSDeviceList}"
   ephemeral_block_device = "${var.ec2EphemeralDeviceList}"
 
   lifecycle {
@@ -47,12 +48,15 @@ resource "aws_instance" "instance" {
     # Due to several known issues in Terraform AWS provider related to arguments of aws_instance:
     # (eg, https://github.com/terraform-providers/terraform-provider-aws/issues/2036)
     # we have to ignore changes in the following arguments
-    ignore_changes = ["private_ip", "vpc_security_group_ids", "root_block_device"]
+    ignore_changes = [
+      "private_ip",
+      "vpc_security_group_ids",
+      "root_block_device"]
   }
 
   tags {
-    Name            = "${lower(var.ec2Name)}-ec2-${lower(var.ec2Environment)}-${count.index+1}"
-    Environment     = "${var.ec2Environment}"
+    Name = "${lower(var.ec2Name)}-ec2-${lower(var.ec2Environment)}-${count.index+1}"
+    Environment = "${var.ec2Environment}"
   }
   ##############################################
   # Provisioning
@@ -74,5 +78,6 @@ resource "aws_instance" "instance" {
     }
   }*/
 
-  depends_on = ["aws_key_pair.key_pair"]
+  depends_on = [
+    "aws_key_pair.key_pair"]
 }

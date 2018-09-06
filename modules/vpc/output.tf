@@ -23,11 +23,13 @@ output "default_security_group_id" {
 }
 
 output "public_route_table_ids" {
-  value = ["${aws_route_table.public_route_table.*.id}"]
+  value = [
+    "${aws_route_table.public_route_table.*.id}"]
 }
 
 output "private_route_table_ids" {
-  value = ["${aws_route_table.private_route_table.*.id}"]
+  value = [
+    "${aws_route_table.private_route_table.*.id}"]
 }
 
 output "vpc-publicsubnets" {
@@ -43,7 +45,7 @@ output "vpc-publicsubnet-ids" {
 }
 
 output "vpc-privatesubnets" {
-  value   = "${aws_subnet.private_subnets.*.cidr_block}"
+  value = "${aws_subnet.private_subnets.*.cidr_block}"
 }
 
 output "vpc-privatesubnet-ids" {
@@ -51,23 +53,26 @@ output "vpc-privatesubnet-ids" {
 }
 
 output "nat_eips" {
-  value = ["${aws_eip.nat_eip.*.id}"]
+  value = [
+    "${aws_eip.nat_eip.*.id}"]
 }
 
 output "nat_eips_public_ips" {
-  value = ["${aws_eip.nat_eip.*.public_ip}"]
+  value = [
+    "${aws_eip.nat_eip.*.public_ip}"]
 }
 
 output "natgw_ids" {
-  value = ["${aws_nat_gateway.nat_gw.*.id}"]
+  value = [
+    "${aws_nat_gateway.nat_gw.*.id}"]
 }
 
 output "gateway_id" {
   description = "The ID of the Internet Gateway"
-  value       = "${element(concat(aws_internet_gateway.vpc_igw.*.id, list("")), 0)}"
+  value = "${element(concat(aws_internet_gateway.vpc_igw.*.id, list("")), 0)}"
 }
 
 output "vgw_id" {
   description = "The ID of the VPN Gateway"
-  value       = "${element(concat(aws_vpn_gateway.vpn_gw.*.id, list("")), 0)}"
+  value = "${element(concat(aws_vpn_gateway.vpn_gw.*.id, list("")), 0)}"
 }

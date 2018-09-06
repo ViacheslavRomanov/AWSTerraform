@@ -61,20 +61,24 @@ resource "aws_instance" "ec2-bastion-instance" {
   associate_public_ip_address = true
   subnet_id = "${var.ec2BastionSubnetId}"
   key_name = "${aws_key_pair.key_pair.id}"
-  vpc_security_group_ids = ["${aws_security_group.openvpn.id}"]
+  vpc_security_group_ids = [
+    "${aws_security_group.openvpn.id}"]
   monitoring = false
-  iam_instance_profile        = "${var.ec2IAMInstanceProfile}"
+  iam_instance_profile = "${var.ec2IAMInstanceProfile}"
 
   lifecycle {
     create_before_destroy = true
     # Due to several known issues in Terraform AWS provider related to arguments of aws_instance:
     # (eg, https://github.com/terraform-providers/terraform-provider-aws/issues/2036)
     # we have to ignore changes in the following arguments
-    ignore_changes = ["private_ip", "vpc_security_group_ids", "root_block_device"]
+    ignore_changes = [
+      "private_ip",
+      "vpc_security_group_ids",
+      "root_block_device"]
   }
   tags {
-    Name            = "${var.ec2BastionName}-${var.ec2BastionEnvironment}"
-    Environment     = "${var.ec2BastionEnvironment}"
+    Name = "${var.ec2BastionName}-${var.ec2BastionEnvironment}"
+    Environment = "${var.ec2BastionEnvironment}"
   }
 
 }
@@ -84,7 +88,8 @@ resource "aws_launch_configuration" "ec2-bastion-lc" {
   image_id = "${var.ec2BastionAMI}"
   instance_type = "${var.ec2BastionType}"
   enable_monitoring = false
-  vpc_security_group_ids = ["${aws_security_group.openvpn.id}"]
+  vpc_security_group_ids = [
+    "${aws_security_group.openvpn.id}"]
 
   lifecycle {
     create_before_destroy = true

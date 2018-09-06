@@ -7,17 +7,19 @@ variable "iamEnvironment" {
 }
 
 variable "iamPolicyResources" {
-  type        = "list"
-  default     = ["*"]
+  type = "list"
+  default = [
+    "*"]
 }
 
 variable "iamRolePrincipals" {
-  type        = "list"
+  type = "list"
 }
 
 variable "iamPolicyActions" {
-  type        = "list"
-  default     = ["*"]
+  type = "list"
+  default = [
+    "*"]
 }
 
 variable "iamEnableCrossaccountRole" {
@@ -25,14 +27,18 @@ variable "iamEnableCrossaccountRole" {
 }
 
 variable "iamCrossAccountPrincipalARNs" {
-  type        = "list"
-  default     = ["00000000000","arn:aws:iam::XXXXXXXXXXXX:user/UNDEF_USER"]
+  type = "list"
+  default = [
+    "00000000000",
+    "arn:aws:iam::XXXXXXXXXXXX:user/UNDEF_USER"]
 }
 
 variable "iamCrossAccountPolicyARNs" {
   description = "List of ARNs of policies to be associated with the created IAM role"
-  type        = "list"
-  default     = ["arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser", "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
+  type = "list"
+  default = [
+    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPowerUser",
+    "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"]
 }
 
 
