@@ -58,12 +58,10 @@ variable "ec2InstanceInitiatedShutdownBehavior" {
 
 variable "ec2PublicKeyFile" {
   description = "Key path to your RSA|DSA key"
-  default = "./aws_key.pub"
 }
 
 variable "ec2PrivateKeyFile" {
   description = "Private key"
-  default = "~/.ssh/aws_key"
 }
 
 variable "ec2PublicIPAssociateEnable" {
@@ -92,7 +90,6 @@ variable "monitoring" {
 
 variable "ec2UserDataFile" {
   description = "The user data file to provide when launching the instance"
-  default = "./user_data.sh"
 }
 
 variable "ec2IAMInstanceProfile" {
