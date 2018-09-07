@@ -36,7 +36,33 @@ module "myVpc" {
   vpcEnableNATGateway = "false"
 }
 
-module "iam" {
+module "sgDMZ" {
+  source = "../modules/sg"
+  sgName = "sg0DMZ"
+  sgEnvironment = "stage"
+  sgRuleList = [ "ssh", "http", "default_egress" ]
+  /*
+  value ={
+   "rule_name" = [type, from_port, to_port, protocol, isCIDR, isPrefix, isSGs, isSelf]
+  }
+*/
+  sgRuleDefnition = {
+
+    ssh = ["ingress", 22, 22, "tcp", true, false, false, false]
+    http = ["ingress", 80, 80, "tcp", true, false, false, false]
+    mysql = ["ingress", 3306, 3306, "tcp", true, false, false, false]
+    default_egress = ["egress", 0, 0, "-1", true, false, false, false]
+  }
+
+  sgCIDRList = {
+    ssh = ["0.0.0.0/0"]
+    http = ["0.0.0.0/0"]
+    mysql = ["0.0.0.0/0"]
+    default_egress = ["0.0.0.0/0"]
+  }
+  sgVPCId = "${module.myVpc.vpc_id}"
+}
+/*module "iam" {
   source = "../modules/iam"
   iamName = "TEST-IAM"
   iamEnvironment = "STAGE"
@@ -69,4 +95,4 @@ module "bastion" {
   ec2BastionKeyName = "TESTKEY"
   ec2BastionName = "TEST"
   ec2BastionEnvironment = "STAGE"
-}
+} */
