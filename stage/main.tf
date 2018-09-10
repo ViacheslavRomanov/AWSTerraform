@@ -19,7 +19,7 @@ resource "aws_default_vpc" "default" {}
   vpcId = "${aws_default_vpc.default.id}"
 } */
 
-module "myVpc" {
+module "vpc" {
   source = "../modules/vpc"
   vpcName = "myVPC"
   allowed_ports = []
@@ -60,9 +60,9 @@ module "sgDMZ" {
     mysql = ["0.0.0.0/0"]
     default_egress = ["0.0.0.0/0"]
   }
-  sgVPCId = "${module.myVpc.vpc_id}"
+  sgVPCId = "${module.vpc.vpc_id}"
 }
-/*module "iam" {
+module "iam" {
   source = "../modules/iam"
   iamName = "TEST-IAM"
   iamEnvironment = "STAGE"
@@ -85,7 +85,7 @@ module "sgDMZ" {
   ]
 }
 
-module "bastion" {
+/*module "bastion" {
   source = "../modules/services/bastion-openvpn"
   ec2BastionKeyPath = "../vars/aws_key.pub"
   ec2BastionSubnetId = "${module.myVpc.vpc-publicsubnet-id_0}"
@@ -95,4 +95,22 @@ module "bastion" {
   ec2BastionKeyName = "TESTKEY"
   ec2BastionName = "TEST"
   ec2BastionEnvironment = "STAGE"
-} */
+}*/
+
+module "ec2" {
+  source                              = "../modules/ec2"
+  ec2Name                                = "Bastione"
+  ec2AMI = "ami-c58c1dd3"
+  ec2Environment                         = "stage"
+  ec2InstanceType                   = "t2.micro"
+  ec2PublicIPAssociateEnable  = "true"
+  ec2Tenancy                             = "${module.vpc.instance_tenancy}"
+  ec2IAMInstanceProfile                = "${module.iam.instance_profile_id}"
+  ec2SubnetId                           = "${element(module.vpc.vpc-publicsubnet-ids, 0)}"
+  ec2VPCSecurityGroupIDList              = ["${module.sgDMZ.security_group_id}"]
+  monitoring                          = "false"
+  ec2PrivateKeyFile = ""
+  #ec2UserDataFile = ""
+  ec2PublicKeyFile = "../vars/aws_key.pub"
+}
+

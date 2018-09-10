@@ -90,6 +90,7 @@ variable "monitoring" {
 
 variable "ec2UserDataFile" {
   description = "The user data file to provide when launching the instance"
+  default = ""
 }
 
 variable "ec2IAMInstanceProfile" {
@@ -114,13 +115,13 @@ variable "ec2IPv6AddressCount" {
 
 variable "ec2IPv6AddressList" {
   description = "Specify one or more IPv6 addresses from the range of the subnet to associate with the primary network interface"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "ec2VolumeTagMap" {
   description = "A mapping of tags to assign to the devices created by the instance at launch time"
-  type = map
+  type = "map"
   default = {}
 }
 
@@ -131,18 +132,18 @@ variable "root_block_device" {
 
 variable "ec2EBSDeviceList" {
   description = "Additional EBS block devices to attach to the instance"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "ec2EphemeralDeviceList" {
   description = "Customize Ephemeral (also known as Instance Store) volumes on the instance"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "network_interface" {
   description = "Customize network interfaces to be attached at instance boot time"
-  type = list
+  type = "list"
   default = []
 }
