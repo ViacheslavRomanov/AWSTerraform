@@ -30,7 +30,7 @@ variable "rdsInstanceParameterGroup" {
 
 variable "rdsSubnetIdList" {
   description = "subnet IDs"
-  type = list
+  type = "list"
 }
 
 variable "rdsIdentifier" {
@@ -100,7 +100,7 @@ variable "rdsDefaultPort" {
 
 #lookup parameters for specic RDS types
 variable "rdsDBParametersDefault" {
-  type = map
+  type = "map"
   default = {
     mysql = [
       {
