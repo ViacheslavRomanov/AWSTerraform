@@ -40,7 +40,7 @@ module "sgDMZ" {
   source = "../modules/sg"
   sgName = "sg0DMZ"
   sgEnvironment = "stage"
-  sgRuleList = [ "ssh", "http", "default_egress" ]
+  sgRuleList = [ "ssh", "http", "openvpn", "default_egress" ]
   /*
   value ={
    "rule_name" = [type, from_port, to_port, protocol, isCIDR, isPrefix, isSGs, isSelf]
@@ -51,6 +51,7 @@ module "sgDMZ" {
     ssh = ["ingress", 22, 22, "tcp", true, false, false, false]
     http = ["ingress", 80, 80, "tcp", true, false, false, false]
     mysql = ["ingress", 3306, 3306, "tcp", true, false, false, false]
+    openvpn = ["ingress", 1194, 1194, "udp", true, false, false, false]
     default_egress = ["egress", 0, 0, "-1", true, false, false, false]
   }
 
@@ -58,6 +59,7 @@ module "sgDMZ" {
     ssh = ["0.0.0.0/0"]
     http = ["0.0.0.0/0"]
     mysql = ["0.0.0.0/0"]
+    openvpn = ["0.0.0.0/0"]
     default_egress = ["0.0.0.0/0"]
   }
   sgVPCId = "${module.vpc.vpc_id}"
@@ -85,21 +87,9 @@ module "iam" {
   ]
 }
 
-/*module "bastion" {
-  source = "../modules/services/bastion-openvpn"
-  ec2BastionKeyPath = "../vars/aws_key.pub"
-  ec2BastionSubnetId = "${module.myVpc.vpc-publicsubnet-id_0}"
-  vpcCIDR = "${module.myVpc.vpc_cidr_block}"
-  vpcId = "${module.myVpc.vpc_id}"
-  ec2IAMInstanceProfile = "${module.iam.instance_profile_id}"
-  ec2BastionKeyName = "TESTKEY"
-  ec2BastionName = "TEST"
-  ec2BastionEnvironment = "STAGE"
-}*/
-
-module "ec2" {
+module "bastion" {
   source                              = "../modules/ec2"
-  ec2Name                                = "Bastione"
+  ec2Name                                = "Bastion"
   ec2AMI = "ami-c58c1dd3"
   ec2Environment                         = "stage"
   ec2InstanceType                   = "t2.micro"
@@ -110,7 +100,16 @@ module "ec2" {
   ec2VPCSecurityGroupIDList              = ["${module.sgDMZ.security_group_id}"]
   monitoring                          = "false"
   ec2PrivateKeyFile = ""
-  #ec2UserDataFile = ""
+  ec2UserDataFile = "../modules/services/bastion-openvpn/bastion.sh"
   ec2PublicKeyFile = "../vars/aws_key.pub"
+}
+
+output "public_ip" {
+  value = [
+    "${module.bastion.public_dns}"]
+}
+
+output "copy_settings_command" {
+  value = [ "scp -i PUBLIC_KEY ec2-user@$PUBLIC_IP:/etc/openvpn/easy-rsa/user_settings.tar.gz user-set.tar/gz" ]
 }
 

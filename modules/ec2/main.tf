@@ -13,7 +13,7 @@ resource "aws_instance" "instance" {
 
   ami = "${var.ec2AMI}"
   instance_type = "${var.ec2InstanceType}"
-  #user_data = "${file("${var.ec2UserDataFile}")}"
+  user_data = "${file("${var.ec2UserDataFile}")}"
   key_name = "${aws_key_pair.key_pair.id}"
   subnet_id = "${var.ec2SubnetId}"
   vpc_security_group_ids = [
