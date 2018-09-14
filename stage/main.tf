@@ -112,8 +112,8 @@ module "vpc" {
 //output "copy_settings_command" {
 //  value = [ "scp -i PUBLIC_KEY ec2-user@$PUBLIC_IP:/etc/openvpn/easy-rsa/user_settings.tar.gz user-set.tar/gz" ]
 //}
-module "rds" {
+/*module "rds" {
   source = "../modules/rds"
 
   rdsSubnetIdList = ["${module.vpc.vpc-privatesubnet-ids}"]
-}
+} */
