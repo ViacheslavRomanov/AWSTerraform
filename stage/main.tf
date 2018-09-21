@@ -1,14 +1,25 @@
 ##################################################################################
-# PROVIDERS
+# REMOTE STATE
 ##################################################################################
-
-provider "aws" {
-  access_key = "${var.aws_access_key}"
-  secret_key = "${var.aws_secret_key}"
-  region = "us-east-1"
+terraform {
+  backend "s3" {
+    encrypt = true
+    bucket = "aws-state-keeper"
+    dynamodb_table = "aws-lock-keeper"
+    region = "us-east-1"
+    key = "terraform/state.tfstate"
+  }
 }
 
-resource "aws_default_vpc" "default" {}
+##################################################################################
+# PROVIDERS
+##################################################################################
+provider "aws" {
+  ## ADD ENV VAR AWS_ACCESS_KEY_ID  AWS_SECRET_ACCESS_KEY
+#  access_key = "${var.aws_access_key}"
+#  secret_key = "${var.aws_secret_key}"
+  region = "${var.aws_region}"
+}
 ##################################################################################
 # MODULES
 ##################################################################################
