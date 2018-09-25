@@ -39,5 +39,12 @@ pipeline {
                 ]
             }
         }
+        stage('Create app AMI') {
+            steps {
+                build job: 'create_app_image', parameters: [
+                        string(name: 'AWS_REGION', value: "${AWS_REGION}")
+                ]
+            }
+        }
     }
 }
