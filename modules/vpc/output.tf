@@ -52,6 +52,10 @@ output "vpc-privatesubnet-ids" {
   value = "${aws_subnet.private_subnets.*.id}"
 }
 
+output "vpc-privatesubnet-id_0" {
+  value = "${aws_subnet.private_subnets.0.id}"
+}
+
 output "nat_eips" {
   value = [
     "${aws_eip.nat_eip.*.id}"]

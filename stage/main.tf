@@ -15,7 +15,7 @@ terraform {
 # PROVIDERS
 ##################################################################################
 provider "aws" {
-  ## ADD ENV VAR AWS_ACCESS_KEY_ID  AWS_SECRET_ACCESS_KEY
+ ## ADD ENV VAR AWS_ACCESS_KEY_ID  AWS_SECRET_ACCESS_KEY
 #  access_key = "${var.aws_access_key}"
 #  secret_key = "${var.aws_secret_key}"
   region = "${var.aws_region}"
@@ -24,11 +24,6 @@ provider "aws" {
 # MODULES
 ##################################################################################
 
-/*module "webserver_cluster" {
-  source = "../modules/services/webserver-cluster"
-  cluster_name = "webservers-stage"
-  vpcId = "${aws_default_vpc.default.id}"
-} */
 
 module "vpc" {
   source = "../modules/vpc"
@@ -45,58 +40,64 @@ module "vpc" {
 
   vpcSingleNATGateway = "false"
   vpcEnableNATGateway = "false"
+  vpcMapPublicIpOnLaunch = "false"
 }
 
-//module "sgDMZ" {
-//  source = "../modules/sg"
-//  sgName = "sg0DMZ"
-//  sgEnvironment = "stage"
-//  sgRuleList = [ "ssh", "http", "openvpn", "default_egress" ]
-//  /*
-//  value ={
-//   "rule_name" = [type, from_port, to_port, protocol, isCIDR, isPrefix, isSGs, isSelf]
-//  }
-//*/
-//  sgRuleDefnition = {
-//
-//    ssh = ["ingress", 22, 22, "tcp", true, false, false, false]
-//    http = ["ingress", 80, 80, "tcp", true, false, false, false]
-//    mysql = ["ingress", 3306, 3306, "tcp", true, false, false, false]
-//    openvpn = ["ingress", 1194, 1194, "udp", true, false, false, false]
-//    default_egress = ["egress", 0, 0, "-1", true, false, false, false]
-//  }
-//
-//  sgCIDRList = {
-//    ssh = ["0.0.0.0/0"]
-//    http = ["0.0.0.0/0"]
-//    mysql = ["0.0.0.0/0"]
-//    openvpn = ["0.0.0.0/0"]
-//    default_egress = ["0.0.0.0/0"]
-//  }
-//  sgVPCId = "${module.vpc.vpc_id}"
-//}
-//module "iam" {
-//  source = "../modules/iam"
-//  iamName = "TEST-IAM"
-//  iamEnvironment = "STAGE"
-//
-//  iamRolePrincipals = [
-//    "ec2.amazonaws.com",
-//  ]
-//  iamPolicyActions = [
-//    "cloudwatch:GetMetricStatistics",
-//    "logs:DescribeLogStreams",
-//    "logs:GetLogEvents",
-//    "elasticache:Describe*",
-//    "rds:Describe*",
-//    "rds:ListTagsForResource",
-//    "ec2:DescribeAccountAttributes",
-//    "ec2:DescribeAvailabilityZones",
-//    "ec2:DescribeSecurityGroups",
-//    "ec2:DescribeVpcs",
-//    "ec2:Owner",
-//  ]
-//}
+data "aws_ami" "app_image" {
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["APP_PROD_AMI*"]
+  }
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  owners = ["self"]
+}
+
+module "sgAPP" {
+  source = "../modules/sg"
+  sgName = "sgAPP"
+  sgEnvironment = "stage"
+  sgRuleList = [ "ssh", "app", "default_egress" ]
+  sgRuleDefnition = {
+    ssh = ["ingress", 22, 22, "tcp", true, false, false, false]
+    app = ["ingress", 8181, 8181, "tcp", true, false, false, false]
+    default_egress = ["egress", 0, 0, "-1", true, false, false, false]
+  }
+  sgCIDRList = {
+    ssh = ["0.0.0.0/0"]
+    app = ["0.0.0.0/0"]
+    default_egress = ["0.0.0.0/0"]
+  }
+  sgVPCId = "${module.vpc.vpc_id}"
+}
+
+module "iamGenericRole" {
+  source = "../modules/iam"
+  iamName = "TEST-IAM"
+  iamEnvironment = "STAGE"
+
+  iamRolePrincipals = [
+    "ec2.amazonaws.com",
+  ]
+  iamPolicyActions = [
+    "cloudwatch:GetMetricStatistics",
+    "logs:DescribeLogStreams",
+    "logs:GetLogEvents",
+    "elasticache:Describe*",
+    "rds:Describe*",
+    "rds:ListTagsForResource",
+    "ec2:DescribeAccountAttributes",
+    "ec2:DescribeAvailabilityZones",
+    "ec2:DescribeSecurityGroups",
+    "ec2:DescribeVpcs",
+    "ec2:Owner",
+  ]
+}
+
+
 //
 //module "bastion" {
 //  source                              = "../modules/ec2"
