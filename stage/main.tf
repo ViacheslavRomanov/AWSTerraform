@@ -76,7 +76,7 @@ module "sgAPP" {
 
 module "iamGenericRole" {
   source = "../modules/iam"
-  iamName = "TEST-IAM"
+  iamName = "GenereicRole"
   iamEnvironment = "STAGE"
 
   iamRolePrincipals = [
@@ -124,8 +124,66 @@ module "iamGenericRole" {
 //output "copy_settings_command" {
 //  value = [ "scp -i PUBLIC_KEY ec2-user@$PUBLIC_IP:/etc/openvpn/easy-rsa/user_settings.tar.gz user-set.tar/gz" ]
 //}
-/*module "rds" {
+module "rds" {
   source = "../modules/rds"
-
+  rdsName = "APPRDS"
+  rdsIsMultiAZ = "false"
+  rdsInstanceClass = "db.t2.micro"
+  rdsDBName = "sample_app_db"
+  rdsDBUser = "${var.db_user}"
+  rdsDBPassword = "${var.db_password}"
   rdsSubnetIdList = ["${module.vpc.vpc-privatesubnet-ids}"]
-} */
+}
+
+module "elb" {
+  source = "../modules/elb"
+  elbName = "appELB"
+  elbEnvironment = "stage"
+  elbSubnetList = ["${module.vpc.vpc-publicsubnet-ids}"]
+  elbListenerList = [
+    {
+      instance_port     = "8181"
+      instance_protocol = "HTTP"
+      lb_port           = "80"
+      lb_protocol       = "HTTP"
+    }
+  ]
+  elbHealthCheckList = [
+    {
+      target              = "HTTP:8181/"
+      interval            = 30
+      healthy_threshold   = 2
+      unhealthy_threshold = 2
+      timeout             = 5
+    }
+  ]
+  elbCookieSticknessLBHttpEnable = "true"
+  elbCookieSticknessAppHttpEnable = "true"
+}
+
+module "asg" {
+  source = "../modules/asg"
+  asgName = "asgAPP"
+  asgIsCreate = "true"
+  asgVPCSubnetList = ["${module.vpc.vpc-privatesubnet-ids}"]
+  asgIsUserDataFile = "false"
+  asgEC2UserData = <<-EOF
+                #!/bin/sh
+                export APP_DBSERVER=${module.rds.rds_addresses}
+                export APP_DBNAME="sample_app_db"
+                export APP_DBUSER=${var.db_user}
+                export APP_DBPASSWORD=${var.db_password}
+  EOF
+  asgLBList = ["${module.elb.elb_name}"]
+  asgHealthCheckType = "elb"
+  asgAMI = "${data.aws_ami.app_image.id}"
+  asgEC2InstanceType = "t2.micro"
+  asgSGList = ["${module.sgAPP.security_group_id}"]
+  asgIAMInstanceProfile = "${module.iamGenericRole.instance_profile_id}"
+  asgMinSize = "2"
+  asgMaxSize = "3"
+  asgDesiredCapacity = "2"
+  key_path = "../vars/aws_key.pub"
+}
+
+

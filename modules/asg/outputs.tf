@@ -1,12 +1,12 @@
 # Launch configuration
 output "this_launch_configuration_id" {
   description = "The ID of the launch configuration"
-  value = "${var.launch_configuration == "" && var.create_lc ? element(concat(aws_launch_configuration.lc.*.id, list("")), 0) : var.launch_configuration}"
+  value = "${var.asgLaunchConfigurationName == "" && var.asgIsCreateLC ? element(concat(aws_launch_configuration.lc.*.id, list("")), 0) : var.asgLaunchConfigurationName}"
 }
 
 output "this_launch_configuration_name" {
   description = "The name of the launch configuration"
-  value = "${var.launch_configuration == "" && var.create_lc ? element(concat(aws_launch_configuration.lc.*.name, list("")), 0) : ""}"
+  value = "${var.asgLaunchConfigurationName == "" && var.asgIsCreateLC ? element(concat(aws_launch_configuration.lc.*.name, list("")), 0) : ""}"
 }
 
 # Autoscaling group

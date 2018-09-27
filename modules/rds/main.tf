@@ -96,7 +96,7 @@ resource "aws_rds_cluster" "rds_cluster" {
   storage_encrypted = "${var.rdsIsStorageEncrypted}"
   apply_immediately = "${var.rdsIsApplyImmediately}"
   db_cluster_parameter_group_name = "${length(var.rdsClusterParameterGroup) > 0 ? aws_db_parameter_group.db_parameter_group.id : var.rdsClusterParameterGroup}"
-  #availability_zones  = ["${split(",", (lookup(var.availability_zones, var.region)))}"]
+  //availability_zones  = ["${split(",", (lookup(var.rdsAvailabilityZoneMap, var.rdsRegion)))}"]
 
   database_name = "${var.rdsDBName}"
   master_username = "${var.rdsDBUser}"

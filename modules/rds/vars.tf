@@ -194,7 +194,7 @@ variable "rdsVPCSGIdList" {
   default = []
 }
 
-/*variable "availability_zones" {
+variable "rdsAvailabilityZoneMap" {
     description = "Availability zones for AWS ASG"
     type        = "map"
     default     = {
@@ -214,7 +214,7 @@ variable "rdsVPCSGIdList" {
         ap-northeast-1 = "ap-northeast-1a,ap-northeast-1c"
         ap-northeast-2 = "ap-northeast-2a,ap-northeast-2c"
     }
-}*/
+}
 
 variable "rdsBackupRetentionPeriod" {
   description = "The backup retention period (in days)"

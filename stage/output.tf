@@ -21,3 +21,7 @@ output "publicSubnetIdList" {
 output "publicSubnet0Id" {
   value = "${module.vpc.vpc-publicsubnet-id_0}"
 }
+
+output "elbDNSName" {
+  value = "${module.elb.elb_dns_name}"
+}

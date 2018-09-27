@@ -1,8 +1,13 @@
 #---------------------------------------------------
 # Create AWS ASG
 #---------------------------------------------------
+data "template_file" "instances_index" {
+  count = "${var.asgMaxSize}"
+  template = "${lower(var.asgName)}-${lower(var.asgEnvironment)}-${count.index+1}"
+}
+
 resource "aws_autoscaling_group" "asg" {
-  count = "${var.asgIsCreate}"
+  count = "${var.asgIsCreate ? 1 : 0}"
 
   launch_configuration = "${var.asgIsCreateLC ? element(aws_launch_configuration.lc.*.name, 0) : var.asgLaunchConfigurationName}"
   #name                        = "${var.name}-asg-${var.environment}"
@@ -34,7 +39,7 @@ resource "aws_autoscaling_group" "asg" {
   protect_from_scale_in = "${var.asgIsProtectFromScaleIn}"
 
   tags = {
-    Name = "${data.template_file.instances_index.rendered}"
+    /*Name = "${data.template_file.instances_index.rendered}" */
     Environment = "${var.asgEnvironment}"
   }
 
@@ -42,22 +47,18 @@ resource "aws_autoscaling_group" "asg" {
     "aws_launch_configuration.lc"]
 }
 
-data "template_file" "instances_index" {
-  count = "${var.asgMaxSize}"
-  template = "${lower(var.asgName)}-${lower(var.asgEnvironment)}-${count.index+1}"
-}
 
-resource "aws_autoscaling_attachment" "elb_autoscaling_attachment" {
+/*resource "aws_autoscaling_attachment" "elb_autoscaling_attachment" {
   count = "${upper(var.asgLBType) == "ELB" && length(var.asgLBList) > 0 ? 1 : 0}"
   autoscaling_group_name = "${aws_autoscaling_group.asg.id}"
   elb = "${data.template_file.elb_index.rendered}"
 }
-data "template_file" "elb_index" {
+/*data "template_file" "elb_index" {
   count = "${length(var.asgLBList)}"
   template = "${var.asgLBList[count.index]}"
-}
+} */
 
-resource "aws_autoscaling_attachment" "alb_autoscaling_attachment" {
+/*resource "aws_autoscaling_attachment" "alb_autoscaling_attachment" {
   count = "${upper(var.asgLBType) == "ALB" && length(var.asgLBList) > 0 ? 1 : 0}"
   autoscaling_group_name = "${aws_autoscaling_group.asg.id}"
   alb_target_group_arn = "${data.template_file.alb_index.rendered}"
@@ -65,7 +66,7 @@ resource "aws_autoscaling_attachment" "alb_autoscaling_attachment" {
 data "template_file" "alb_index" {
   count = "${length(var.asgLBList)}"
   template = "${var.asgLBList[count.index]}"
-}
+} */
 
 
 resource "aws_key_pair" "key_pair" {
@@ -74,7 +75,7 @@ resource "aws_key_pair" "key_pair" {
 }
 
 resource "aws_launch_configuration" "lc" {
-  count = "${var.asgIsCreateLC}"
+  count = "${var.asgIsCreateLC ? 1 : 0}"
 
   #name                        = "${var.name}-lc-${var.environment}"
   name_prefix = "${var.asgName}-lc-"
@@ -85,7 +86,7 @@ resource "aws_launch_configuration" "lc" {
   iam_instance_profile = "${var.asgIAMInstanceProfile}"
 
   key_name = "${aws_key_pair.key_pair.id}"
-  user_data = "${file("${var.asgEC2UserDataFile}")}"
+  user_data = "${var.asgIsUserDataFile ? file("${var.asgEC2UserData}") : var.asgEC2UserData }"
   associate_public_ip_address = "${var.asgInstancePublicIPAssociationEnable}"
 
   enable_monitoring = "${var.asgMonitoringEnable}"

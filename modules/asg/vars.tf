@@ -54,8 +54,13 @@ variable "asgInstancePublicIPAssociationEnable" {
   default = false
 }
 
-variable "asgEC2UserDataFile" {
+variable "asgIsUserDataFile" {
+  default = "false"
+}
+
+variable "asgEC2UserData" {
   description = "The user data file to provide when launching the instance"
+  default = ""
 }
 
 variable "asgMonitoringEnable" {
@@ -70,19 +75,19 @@ variable "asgIsEBSOptimized" {
 
 variable "asgRootBlockDeviceList" {
   description = "Customize details about the root block device of the instance. See Block Devices below for details"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "asgEBSBlockDeviceList" {
   description = "Additional EBS block devices to attach to the instance"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "asgEphemeralBlockDeviceList" {
   description = "Customize Ephemeral (also known as Instance Store) volumes on the instance"
-  type = list
+  type = "list"
   default = []
 }
 
@@ -168,26 +173,26 @@ variable "asgForceDeleteEnable" {
 
 variable "asgLBList" {
   description = "A list of elastic load balancer names to add to the autoscaling group names"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "asgALBTargetGroupARNList" {
   description = "A list of aws_alb_target_group ARNs, for use with Application Load Balancing"
-  type = list
+  type = "list"
   default = []
 }
 
 variable "asgTerminationPolicyList" {
   description = "A list of policies to decide how the instances in the auto scale group should be terminated. The allowed values are OldestInstance, NewestInstance, OldestLaunchConfiguration, ClosestToNextInstanceHour, Default"
-  type = list
+  type = "list"
   default = [
     "Default"]
 }
 
 variable "asgSuspendedProcessList" {
   description = "A list of processes to suspend for the AutoScaling Group. The allowed values are Launch, Terminate, HealthCheck, ReplaceUnhealthy, AZRebalance, AlarmNotification, ScheduledActions, AddToLoadBalancer. Note that if you suspend either the Launch or Terminate process types, it can prevent your autoscaling group from functioning properly."
-  type = list
+  type = "list"
   default = []
 }
 
