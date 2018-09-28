@@ -29,3 +29,7 @@ output "db_parameter_groups" {
 output "hosted_zone_ids" {
   value = "${aws_db_instance.db_instance.*.hosted_zone_id}"
 }
+
+output "db_instance_address" {
+  value = "${aws_db_instance.db_instance.0.hosted_zone_id}"
+}

@@ -38,10 +38,10 @@ resource "aws_autoscaling_group" "asg" {
   wait_for_capacity_timeout = "${var.asgWaitForCapacityTimeout}"
   protect_from_scale_in = "${var.asgIsProtectFromScaleIn}"
 
-  tags = {
-    /*Name = "${data.template_file.instances_index.rendered}" */
-    Environment = "${var.asgEnvironment}"
-  }
+// tags = {
+//    /*Name = "${data.template_file.instances_index.rendered}" */
+//    Environment = "${var.asgEnvironment}"
+//  }
 
   depends_on = [
     "aws_launch_configuration.lc"]

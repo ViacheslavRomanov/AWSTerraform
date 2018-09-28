@@ -32,11 +32,10 @@ module "vpc" {
   vpcRegion = "us-east-1"
   vpcCIDRPrivateSubnet = [
     "10.0.1.0/24",
-    "10.0.2.0/24",
-    "10.0.3.0/24"]
+    "10.0.2.0/24"]
   vpcCIDRPublicSubnet = [
-    "10.0.4.0/24",
-    "10.0.5.0/24"]
+    "10.0.10.0/24",
+    "10.0.20.0/24"]
 
   vpcSingleNATGateway = "false"
   vpcEnableNATGateway = "false"
@@ -124,7 +123,7 @@ module "iamGenericRole" {
 //output "copy_settings_command" {
 //  value = [ "scp -i PUBLIC_KEY ec2-user@$PUBLIC_IP:/etc/openvpn/easy-rsa/user_settings.tar.gz user-set.tar/gz" ]
 //}
-module "rds" {
+/*module "rds" {
   source = "../modules/rds"
   rdsName = "APPRDS"
   rdsIsMultiAZ = "false"
@@ -133,7 +132,7 @@ module "rds" {
   rdsDBUser = "${var.db_user}"
   rdsDBPassword = "${var.db_password}"
   rdsSubnetIdList = ["${module.vpc.vpc-privatesubnet-ids}"]
-}
+} */
 
 module "elb" {
   source = "../modules/elb"
@@ -159,23 +158,30 @@ module "elb" {
   ]
   elbCookieSticknessLBHttpEnable = "true"
   elbCookieSticknessAppHttpEnable = "true"
+  elbCrossZoneLoadBalancingEnable = "true"
+  elbSGList =  [ "${module.vpc.default_security_group_id}" ]
+}
+
+data "template_file" "user_data" {
+  template = "env_set.tpl"
+  vars {
+    //dbserver = "${module.rds.db_instance_address}"
+    dbserver = "NODTA"
+    dbname = "sample_app_db"
+    dbuser = "${var.db_user}"
+    dbpass = "${var.db_password}"
+  }
 }
 
 module "asg" {
   source = "../modules/asg"
   asgName = "asgAPP"
   asgIsCreate = "true"
-  asgVPCSubnetList = ["${module.vpc.vpc-privatesubnet-ids}"]
+  asgVPCSubnetList = ["${module.vpc.vpc-publicsubnet-ids}"]
   asgIsUserDataFile = "false"
-  asgEC2UserData = <<-EOF
-                #!/bin/sh
-                export APP_DBSERVER=${module.rds.rds_addresses}
-                export APP_DBNAME="sample_app_db"
-                export APP_DBUSER=${var.db_user}
-                export APP_DBPASSWORD=${var.db_password}
-  EOF
+  asgEC2UserData = "${data.template_file.user_data.rendered}"
   asgLBList = ["${module.elb.elb_name}"]
-  asgHealthCheckType = "elb"
+  asgHealthCheckType = "ELB"
   asgAMI = "${data.aws_ami.app_image.id}"
   asgEC2InstanceType = "t2.micro"
   asgSGList = ["${module.sgAPP.security_group_id}"]
