@@ -6,6 +6,20 @@ pipeline {
         TF_VAR_aws_region = "${AWS_REGION}"
     }
     stages {
+        stage('Create base image') {
+            steps {
+                build job: 'create_base_image', parameters: [
+                        string(name: 'AWS_REGION', value: "${AWS_REGION}")
+                ]
+            }
+        }
+        stage('Create app AMI') {
+            steps {
+                build job: 'create_app_image', parameters: [
+                        string(name: 'AWS_REGION', value: "${AWS_REGION}")
+                ]
+            }
+        }
         stage('Checkout') {
             steps {
                 checkout scm
@@ -30,20 +44,6 @@ pipeline {
                 dir ('stage') {
                     sh 'terraform apply -input=false tfplan'
                 }
-            }
-        }
-        stage('Create base image') {
-            steps {
-                build job: 'create_base_image', parameters: [
-                        string(name: 'AWS_REGION', value: "${AWS_REGION}")
-                ]
-            }
-        }
-        stage('Create app AMI') {
-            steps {
-                build job: 'create_app_image', parameters: [
-                        string(name: 'AWS_REGION', value: "${AWS_REGION}")
-                ]
             }
         }
     }

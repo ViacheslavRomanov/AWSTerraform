@@ -130,7 +130,7 @@ resource "aws_subnet" "public_subnets" {
   cidr_block = "${element(var.vpcCIDRPublicSubnet, count.index)}"
   vpc_id = "${aws_vpc.vpc.id}"
   map_public_ip_on_launch = "${var.vpcMapPublicIpOnLaunch}"
-  availability_zone = "${element(random_shuffle.random_az.result,count.index+length(var.vpcCIDRPrivateSubnet))}"
+  availability_zone = "${element(random_shuffle.random_az.result,count.index)}"
   tags {
     Name = "${var.vpcName}-${var.environment}-public_subnet-${count.index+1}"
     Environment = "${var.environment}"

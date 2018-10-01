@@ -73,6 +73,22 @@ module "sgAPP" {
   sgVPCId = "${module.vpc.vpc_id}"
 }
 
+module "sgELB" {
+  source = "../modules/sg"
+  sgName = "sgELB"
+  sgEnvironment = "stage"
+  sgRuleList = [ "http", "default_egress" ]
+  sgRuleDefnition = {
+    http = ["ingress", 80, 80, "tcp", true, false, false, false]
+    default_egress = ["egress", 0, 0, "-1", true, false, false, false]
+  }
+  sgCIDRList = {
+    http = ["0.0.0.0/0"]
+    default_egress = ["0.0.0.0/0"]
+  }
+  sgVPCId = "${module.vpc.vpc_id}"
+}
+
 module "iamGenericRole" {
   source = "../modules/iam"
   iamName = "GenereicRole"
@@ -159,7 +175,7 @@ module "elb" {
   elbCookieSticknessLBHttpEnable = "true"
   elbCookieSticknessAppHttpEnable = "true"
   elbCrossZoneLoadBalancingEnable = "true"
-  elbSGList =  [ "${module.vpc.default_security_group_id}" ]
+  elbSGList =  [ "${module.vpc.default_security_group_id}", "${module.sgELB.security_group_id}" ]
 }
 
 data "template_file" "user_data" {
@@ -177,14 +193,14 @@ module "asg" {
   source = "../modules/asg"
   asgName = "asgAPP"
   asgIsCreate = "true"
-  asgVPCSubnetList = ["${module.vpc.vpc-publicsubnet-ids}"]
+  asgVPCSubnetList = ["${module.vpc.vpc-privatesubnet-ids}"]
   asgIsUserDataFile = "false"
   asgEC2UserData = "${data.template_file.user_data.rendered}"
   asgLBList = ["${module.elb.elb_name}"]
   asgHealthCheckType = "ELB"
   asgAMI = "${data.aws_ami.app_image.id}"
   asgEC2InstanceType = "t2.micro"
-  asgSGList = ["${module.sgAPP.security_group_id}"]
+  asgSGList = ["${module.vpc.default_security_group_id}", "${module.sgAPP.security_group_id}"]
   asgIAMInstanceProfile = "${module.iamGenericRole.instance_profile_id}"
   asgMinSize = "2"
   asgMaxSize = "3"
