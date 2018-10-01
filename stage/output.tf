@@ -25,3 +25,7 @@ output "publicSubnet0Id" {
 output "elbDNSName" {
   value = "${module.elb.elb_dns_name}"
 }
+
+output "rdsAddress" {
+  value = "${module.rds.rds_addresses}"
+}

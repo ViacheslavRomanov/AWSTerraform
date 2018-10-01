@@ -139,16 +139,16 @@ module "iamGenericRole" {
 //output "copy_settings_command" {
 //  value = [ "scp -i PUBLIC_KEY ec2-user@$PUBLIC_IP:/etc/openvpn/easy-rsa/user_settings.tar.gz user-set.tar/gz" ]
 //}
-/*module "rds" {
+module "rds" {
   source = "../modules/rds"
   rdsName = "APPRDS"
   rdsIsMultiAZ = "false"
   rdsInstanceClass = "db.t2.micro"
-  rdsDBName = "sample_app_db"
+  rdsDBName = "${var.db_name}"
   rdsDBUser = "${var.db_user}"
   rdsDBPassword = "${var.db_password}"
   rdsSubnetIdList = ["${module.vpc.vpc-privatesubnet-ids}"]
-} */
+}
 
 module "elb" {
   source = "../modules/elb"
@@ -181,9 +181,8 @@ module "elb" {
 data "template_file" "user_data" {
   template = "env_set.tpl"
   vars {
-    //dbserver = "${module.rds.db_instance_address}"
-    dbserver = "NODTA"
-    dbname = "sample_app_db"
+    dbserver = "${module.rds.db_instance_address}"
+    dbname = "${var.db_name}"
     dbuser = "${var.db_user}"
     dbpass = "${var.db_password}"
   }
@@ -205,7 +204,7 @@ module "asg" {
   asgMinSize = "2"
   asgMaxSize = "3"
   asgDesiredCapacity = "2"
-  key_path = "../vars/aws_key.pub"
+  key_path = "${var.ec2_key_path}"
 }
 
 
