@@ -33,3 +33,16 @@ output "hosted_zone_ids" {
 output "db_instance_address" {
   value = "${aws_db_instance.db_instance.0.hosted_zone_id}"
 }
+
+output "db_instance_dbname" {
+  value = "${aws_db_instance.db_instance.0.name}"
+}
+
+output "db_instance_dbuser" {
+  value = "${aws_db_instance.db_instance.0.username}"
+}
+
+output "db_instance_dbpassword" {
+  value = "${aws_db_instance.db_instance.0.password}"
+}
+

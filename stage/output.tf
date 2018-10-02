@@ -6,6 +6,10 @@ output "vpcId" {
   value = "${module.vpc.vpc_id}"
 }
 
+output "appRegion" {
+  value = "${var.aws_region}"
+}
+
 output "privateSubnetIdList" {
   value = "${module.vpc.vpc-privatesubnet-ids}"
 }
@@ -28,4 +32,20 @@ output "elbDNSName" {
 
 output "rdsAddress" {
   value = "${module.rds.rds_addresses}"
+}
+
+output "rdsDBName" {
+  value = "${module.rds.db_instance_dbname}"
+}
+
+output "rdsDBUser" {
+  value = "${module.rds.db_instance_dbuser}"
+}
+
+output "rdsDBPassword" {
+  value = "${module.rds.db_instance_dbpassword}"
+}
+
+output "configDBApp" {
+  value = "${data.template_file.user_data.rendered}"
 }

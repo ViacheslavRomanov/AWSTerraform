@@ -148,6 +148,7 @@ module "rds" {
   rdsDBUser = "${var.db_user}"
   rdsDBPassword = "${var.db_password}"
   rdsSubnetIdList = ["${module.vpc.vpc-privatesubnet-ids}"]
+  rdsIsApplyImmediately = "true"
 }
 
 module "elb" {
