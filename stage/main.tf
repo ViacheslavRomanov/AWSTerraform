@@ -206,6 +206,7 @@ module "asg" {
   asgMaxSize = "3"
   asgDesiredCapacity = "2"
   key_path = "${var.ec2_key_path}"
+  asgWaitELBCapacity = "2"
 }
 
 

@@ -232,7 +232,7 @@ variable "asgELBMinCapacity" {
   default = 0
 }
 
-variable "asgIsWaitELBCapacity" {
+variable "asgWaitELBCapacity" {
   description = "Setting this will cause Terraform to wait for exactly this number of healthy instances in all attached load balancers on both create and update operations. Takes precedence over min_elb_capacity behavior."
   default = false
 }

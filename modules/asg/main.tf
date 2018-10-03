@@ -11,7 +11,8 @@ resource "aws_autoscaling_group" "asg" {
 
   launch_configuration = "${var.asgIsCreateLC ? element(aws_launch_configuration.lc.*.name, 0) : var.asgLaunchConfigurationName}"
   #name                        = "${var.name}-asg-${var.environment}"
-  name_prefix = "${var.asgName}-asg-"
+  #name_prefix = "${var.asgName}-asg-"
+  name = "${var.asgName} - ${aws_launch_configuration.lc.name}"
   vpc_zone_identifier = [
     "${var.asgVPCSubnetList}"]
   max_size = "${var.asgMaxSize}"
@@ -24,7 +25,7 @@ resource "aws_autoscaling_group" "asg" {
     "${var.asgLBList}"]
 
   min_elb_capacity = "${var.asgELBMinCapacity}"
-  wait_for_elb_capacity = "${var.asgIsWaitELBCapacity}"
+  wait_for_elb_capacity = "${var.asgWaitELBCapacity}"
   target_group_arns = [
     "${var.asgALBTargetGroupARNList}"]
   default_cooldown = "${var.asgCooldownDefault}"
@@ -42,6 +43,9 @@ resource "aws_autoscaling_group" "asg" {
 //    /*Name = "${data.template_file.instances_index.rendered}" */
 //    Environment = "${var.asgEnvironment}"
 //  }
+  lifecycle {
+    create_before_destroy = "true"
+  }
 
   depends_on = [
     "aws_launch_configuration.lc"]
@@ -78,7 +82,7 @@ resource "aws_launch_configuration" "lc" {
   count = "${var.asgIsCreateLC ? 1 : 0}"
 
   #name                        = "${var.name}-lc-${var.environment}"
-  name_prefix = "${var.asgName}-lc-"
+  #name_prefix = "${var.asgName}-lc-"
   image_id = "${var.asgAMI}"
   instance_type = "${var.asgEC2InstanceType}"
   security_groups = [
