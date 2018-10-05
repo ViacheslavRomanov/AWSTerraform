@@ -2,9 +2,11 @@
 
 sudo yum -y update
 sudo yum install -y java-1.8.0-openjdk.x86_64
+sudo yum install -y java-1.8.0-openjdk-devel.x86_64
+sudo yum install -y dos2unix
 
 sudo /usr/sbin/alternatives --set java /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/java
-sudo /usr/sbin/alternatives --set javac /usr/lib/jvm/jre-1.8.0-openjdk.x86_64/bin/javac
+sudo /usr/sbin/alternatives --set javac /usr/lib/jvm/java-1.8.0-openjdk.x86_64/bin/javac
 
 sudo yum remove -y java-1.7*
 sudo yum install -y git nginx aws-cli
@@ -38,6 +40,8 @@ sudo unzip packer_1.3.1_linux_amd64.zip
 sudo mv packer /bin
 packer --version
 
+
+sudo /usr/sbin/alternatives --set javac /usr/lib/jvm/java-1.8.0-openjdk.x86_64/bin/javac
 
 
 
