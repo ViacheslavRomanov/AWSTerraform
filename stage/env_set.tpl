@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sudo cat << EOF | sudo tee /usr/local/sample-app/config
+sudo cat << EOF | sudo tee /usr/local/config.app
 
 APP_DBSERVER=${dbserver}
 APP_DBNAME=${dbname}

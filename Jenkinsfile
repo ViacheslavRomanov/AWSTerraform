@@ -30,7 +30,7 @@ pipeline {
         }
         stage('Init') {
             steps {
-                dir ('stage') {
+                dir('stage') {
                     sh 'terraform init'
                 }
             }
@@ -53,11 +53,24 @@ pipeline {
                 withCredentials([
                         file(credentialsId: 'ec2_aws_pub', variable: 'KEY_PATH')
                 ]) {
-                    dir ('stage') {
+                    dir('stage') {
                         sh "cp ${KEY_PATH} aws_pub.key"
                         sh "export TF_VAR_ec2_key_path='aws_pub.key'; terraform apply -input=false tfplan"
                         sh "rm aws_pub.key"
                     }
+                }
+            }
+        }
+        stage('enable app_ami_update') {
+            steps {
+                dir('stage') {
+                    script {
+                        JENKINS_PASS=sh(
+                                script: 'sudo cat /var/lib/jenkins/secrets/initialAdminPassword',
+                                returnStdout: true
+                        ).trim()
+                    }
+                    sh "sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:${JENKINS_PASS} enable-job app_ami_update"
                 }
             }
         }
