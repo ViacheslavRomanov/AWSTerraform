@@ -23,6 +23,7 @@ sudo chkconfig --add jenkins
 waitForJenkins
 
 # UPDATE PLUGIN LIST
+
 curl  -L http://updates.jenkins-ci.org/update-center.json | sed '1d;$d' | curl -X POST -H 'Accept: application/json' -d @- http://localhost:8080/updateCenter/byId/default/postBack
 
 sleep 10
@@ -52,11 +53,17 @@ sudo cat << EOF | sudo tee /var/lib/jenkins/jenkins.CLI.xml
 <jenkins.CLI>
   <enabled>true</enabled>
 </jenkins.CLI>
+
 EOF
+
+#sleep 10 # morning timeout
+sleep 3m # evening timeout :)
 
 sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:$PASS install-plugin ${plugins}
 sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:$PASS restart
 javac -version
 java -version
+
+
 
 

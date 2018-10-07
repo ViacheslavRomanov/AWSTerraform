@@ -31,7 +31,7 @@ module "jbs" {
 resource "null_resource" "null0"{
   provisioner "local-exec" {
     command = <<EOT
-    echo export JENKINS_SERVER_IP=${module.jbs.jenkins_server_ip}>my_env
+    echo export JENKINS_SERVER_IP="${module.jbs.jenkins_server_ip}">my_env
     EOT
   }
 }

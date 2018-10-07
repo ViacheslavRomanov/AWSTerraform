@@ -2,8 +2,9 @@
 
 source ../vars/env_vars # AWS Credentials & region
 export TF_VAR_jenkins_public_keyfile="../vars/aws_key.pub" #path to pubkey
-export TF_VAR_jenkins_private_keyfile="../vars/aws_key" #path to privkey
-packer build jenkins.json &&terraform init && terraform plan -input=false -out=tfplan
+export TF_VAR_jenkins_private_keyfile="~/.ssh/aws_key" #path to privkey
+packer build jenkins.json &&
+terraform init && terraform plan -input=false -out=tfplan
 
 if [ -f tfplan ]
 then
@@ -12,10 +13,11 @@ fi
 
 if [ -f my_env ]
 then
-    echo "...delay 30s"
-    sleep 30
+    echo "...delay 3m"
+    sleep 3m #evening lags
     source my_env
-    INITIAL_PASSWORD=`ssh $TF_VAR_jenkins_private_keyfile -o "StrictHostKeyChecking no" ec2-user@$JENKINS_SERVER_IP sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
+    echo $JENKINS_SERVER_IP
+    INITIAL_PASSWORD=`ssh -i $TF_VAR_jenkins_private_keyfile -o "StrictHostKeyChecking no" ec2-user@$JENKINS_SERVER_IP sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
     echo "Password is $INITIAL_PASSWORD"
     echo "login to jenkins http://$JENKINS_SERVER_IP:8080"
     echo
