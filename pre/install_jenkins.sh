@@ -3,8 +3,7 @@
 source ../vars/env_vars # AWS Credentials & region
 export TF_VAR_jenkins_public_keyfile="../vars/aws_key.pub" #path to pubkey
 export TF_VAR_jenkins_private_keyfile="~/.ssh/aws_key" #path to privkey
-packer build jenkins.json &&
-terraform init && terraform plan -input=false -out=tfplan
+packer build jenkins.json && terraform init && terraform plan -input=false -out=tfplan
 
 if [ -f tfplan ]
 then
@@ -13,8 +12,8 @@ fi
 
 if [ -f my_env ]
 then
-    echo "...delay 3m"
-    sleep 3m #evening lags
+    echo "...delay 5m"
+    sleep 5m # jenkins lags
     source my_env
     echo $JENKINS_SERVER_IP
     INITIAL_PASSWORD=`ssh -i $TF_VAR_jenkins_private_keyfile -o "StrictHostKeyChecking no" ec2-user@$JENKINS_SERVER_IP sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
@@ -39,7 +38,7 @@ cred/aws_key_id.sh  | jcli_cred
 cred/aws_sec_key.sh  | jcli_cred
 CRUMB=$(curl -s "http://admin:"${PASS}"@"${JENKINS_SERVER_IP}":8080/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,\":\",//crumb)")
 curl -H $CRUMB -X POST "http://admin:"${PASS}"@"${JENKINS_SERVER_IP}":8080/credentials/store/system/domain/_/createCredentials" \
-  -F secret=@$TF_VAR_jenkins_keyfile \
+  -F secret=@$TF_VAR_jenkins_public_keyfile \
   -F 'json={ "": "0",
              "credentials":{
                 "scope": "GLOBAL",
