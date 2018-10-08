@@ -31,7 +31,7 @@ function jcli_jobs () {
 }
 
 function jcli_build () {
-    ssh -i $TF_VAR_jenkins_private_keyfile -o "StrictHostKeyChecking no" ec2-user@$JENKINS_SERVER_IP sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:$PASS build $1
+    ssh -i $TF_VAR_jenkins_private_keyfile -o "StrictHostKeyChecking no" ec2-user@$JENKINS_SERVER_IP sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:$PASS build $1 -s
 }
 
 cred/aws_key_id.sh  | jcli_cred
@@ -56,3 +56,13 @@ jcli_jobs create_aws_infrastructure
 ssh -i $TF_VAR_jenkins_private_keyfile -o "StrictHostKeyChecking no" ec2-user@$JENKINS_SERVER_IP "echo $PASS | sudo tee /var/lib/jenkins/secrets/initialAdminPassword"
 jcli_build create_aws_infrastructure
 
+cd appenv
+terraform init && terraform plan -input=false -out=tfplan
+
+if [ -f tfplan ]
+then
+    terraform apply -input=false tfplan > result.out   && terraform destroy -auto-approve
+    cat result.out
+    echo "Password is $INITIAL_PASSWORD"
+    echo "login to jenkins http://$JENKINS_SERVER_IP:8080"
+fi

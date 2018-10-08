@@ -57,7 +57,7 @@ sudo cat << EOF | sudo tee /var/lib/jenkins/jenkins.CLI.xml
 EOF
 
 #sleep 10 # morning timeout
-sleep 3m # evening timeout :)
+sleep 5m # evening timeout :)
 
 sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:$PASS install-plugin ${plugins}
 sudo java -jar /var/lib/jenkins/jenkins-cli.jar -s http://localhost:8080 -auth admin:$PASS restart
